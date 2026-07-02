@@ -9,7 +9,7 @@ def formattedDate = date.format('yyyyMMdd') // Es: 20260702
 def formattedTime = date.format('HHmm')    // Es: 2146
 
 android {
-    namespace 'com.frostre1997.glacierfeed'
+    namespace 'com.frostre1997.cheemsfeed'
     compileSdk 34
 
     defaultConfig {
