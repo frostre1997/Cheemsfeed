@@ -3,7 +3,6 @@ plugins {
     id 'org.jetbrains.kotlin.android'
 }
 
-// Generazione automatica del numero di versione basata sulla data e ora
 def date = new Date()
 def formattedDate = date.format('yyyyMMdd') // Es: 20260702
 def formattedTime = date.format('HHmm')    // Es: 2146
@@ -17,7 +16,6 @@ android {
         minSdk 21
         targetSdk 34
         
-        // Versione automatica
         versionCode formattedDate.toInteger()
         versionName "1.0.${formattedTime}"
 
