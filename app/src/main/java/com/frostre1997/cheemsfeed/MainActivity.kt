@@ -19,17 +19,16 @@ class MainActivity : AppCompatActivity() {
         val call = RetrofitClient.instance.getHotPosts()
         
         call.enqueue(object : Callback<Any> {
-            override fun onResponse(call: Call<Any>, response: Response<Any>) {
+            override fun onResponse(call: Call<RedditResponse>, response: Response<RedditResponse>) {
                 if (response.isSuccessful) {
-                    Log.d("CheemsFeed", "Dati ricevuti con successo!")
-                } else {
-                    Log.e("CheemsFeed", "Errore: ${response.code()}")
+                  val posts = response.body()?.data?.children 
+                  posts?.forEach {
+                    Log.d("CheemsFeed", "Post Title: ${it.data.title}")
                 }
             }
 
-            override fun onFailure(call: Call<Any>, t: Throwable) {
-                Log.e("CheemsFeed", "Errore di connessione: ${t.message}")
+            override fun onFailure(call: Call<RedditResponse>, t: Throwable) {
+                Log.d("CheemsFeed", "Connection Falied: ${t.message}")
             }
         })
     }
-}
