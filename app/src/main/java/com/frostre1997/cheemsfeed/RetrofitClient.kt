@@ -1,13 +1,13 @@
 package com.frostre1997.cheemsfeed
 
+import retrofit2.Call
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.GET
 
 interface RedditApi {
-    @GET("r/cheemsburbger/hot.json")  // change subreddit if needed
-    suspend fun getHotPosts(): Call<RedditResponse>
-    // or use Call<RedditResponse> if you prefer; but suspend is cleaner
+    @GET("r/cheemsburbger/hot.json")
+    fun getHotPosts(): Call<RedditResponse>
 }
 
 object RetrofitClient {
