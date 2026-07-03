@@ -2,6 +2,7 @@ package com.frostre1997.cheemsfeed
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -20,28 +21,24 @@ class MainActivity : AppCompatActivity() {
     private fun fetchPosts() {
         val call = RetrofitClient.instance.getHotPosts()
         
-        // Correzione: deve implementare Callback, non solo Call
         call.enqueue(object : Callback<RedditResponse> {
             override fun onResponse(call: Call<RedditResponse>, response: Response<RedditResponse>) {
-                if (response.isSuccessful) {
-                    val rawChildren = response.body()?.data?.children ?: emptyList()
-                    
-                    val posts = rawChildren.map { it.data }
+                if (response.isSuccessful && response.body() != null) {
+                    val posts = response.body()!!.data.children.map { it.data }
                     
                     val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
                     recyclerView.layoutManager = LinearLayoutManager(this@MainActivity)
                     recyclerView.adapter = PostAdapter(posts)
                 } else {
-                    Log.d("CheemsFeed", "Error: ${response.code()}")
+                    Log.e("CheemsFeed", "Errore API: ${response.code()}")
+                    Toast.makeText(this@MainActivity, "Errore caricamento: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             }
      
-             override fun onFailure(call: Call<RedditResponse>, t: Throwable) {
-                 Log.e("CheemsFeed", "Errore: ${t.message}")
-                 android.widget.Toast.makeText(this@MainActivity, "Errore rete: ${t.message}", android.widget.Toast.LENGTH_LONG).show()
+            override fun onFailure(call: Call<RedditResponse>, t: Throwable) {
+                Log.e("CheemsFeed", "Connessione fallita: ${t.message}")
+                Toast.makeText(this@MainActivity, "Errore di rete: ${t.message}", Toast.LENGTH_LONG).show()
             }
-        
         })
     }
 }
-
