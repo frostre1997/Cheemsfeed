@@ -14,21 +14,27 @@ class MainActivity : AppCompatActivity() {
         
         fetchPosts()
     }
-
+    
     private fun fetchPosts() {
         val call = RetrofitClient.instance.getHotPosts()
         
-        call.enqueue(object : Callback<Any> {
-            override fun onResponse(call: Call<RedditResponse>, response: Response<RedditResponse>) {
+        call.enqueue(object : retrofit2.Call<RedditResponse> {
+            override fun onResponse(call: retrofit2.Call<RedditResponse>, response: Response<RedditResponse>) {
+                
                 if (response.isSuccessful) {
                   val posts = response.body()?.data?.children 
-                  posts?.forEach {
-                    Log.d("CheemsFeed", "Post Title: ${it.data.title}")
-                }
+                  
+                    val recyclerView = findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.recyclerView)
+                recyclerView.layoutManager = androidx.recyclerview.widget.LinearLayoutManager(this@MainActivity)
+                recyclerView.adapter = PostAdapter(posts)
+            } else {
+                Log.d("CheemsFeed", "Error: ${response.code()}")
             }
 
-            override fun onFailure(call: Call<RedditResponse>, t: Throwable) {
-                Log.d("CheemsFeed", "Connection Falied: ${t.message}")
-            }
-        })
-    }
+        }
+     
+        override fun onFailure(call: Call<RedditResponse>, t: Throwable) {
+            Log.d("CheemsFeed", "Connection Falied: ${t.message}")
+        }
+    })
+}
