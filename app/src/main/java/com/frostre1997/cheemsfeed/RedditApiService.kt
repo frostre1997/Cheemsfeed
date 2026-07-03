@@ -1,10 +1,10 @@
 package com.frostre1997.cheemsfeed
 
-import retrofit2.call
+import retrofit2.Call
 import retrofit2.http.GET
 
 interface RedditApiService {
-    @GET("r/all/hot.json")
+    @GET("r/hot.json")
     fun getHotPosts(): Call<RedditResponse>
 }
 
