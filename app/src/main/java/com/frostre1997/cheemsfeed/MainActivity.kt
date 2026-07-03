@@ -1,32 +1,35 @@
 package com.frostre1997.cheemsfeed
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        // Find the RecyclerView by ID
-        val recyclerView: RecyclerView = findViewById(R.id.recyclerView)
         
-        // Set the LayoutManager
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        fetchPosts()
+    }
 
-        // Create dummy data for testing
-        val dummyData = listOf(
-            "Welcome to CheemsFeed",
-            "This is a test post",
-            "Minimalist Reddit Client",
-            "Android development from scratch"
-        )
+    private fun fetchPosts() {
+        val call = RetrofitClient.instance.getHotPosts()
+        
+        call.enqueue(object : Callback<Any> {
+            override fun onResponse(call: Call<Any>, response: Response<Any>) {
+                if (response.isSuccessful) {
+                    Log.d("CheemsFeed", "Dati ricevuti con successo!")
+                } else {
+                    Log.e("CheemsFeed", "Errore: ${response.code()}")
+                }
+            }
 
-        // Attach the adapter to the RecyclerView
-        recyclerView.adapter = PostAdapter(dummyData)
+            override fun onFailure(call: Call<Any>, t: Throwable) {
+                Log.e("CheemsFeed", "Errore di connessione: ${t.message}")
+            }
+        })
     }
 }
-
