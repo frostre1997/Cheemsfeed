@@ -35,16 +35,16 @@ class MainActivity : AppCompatActivity() {
                         val posts = body.data.children.map { it.data }
                         recyclerView.adapter = PostAdapter(posts)
                     } else {
-                        Toast.makeText(this@MainActivity, "Risposta vuota", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@MainActivity, "Empty Response", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Log.e("CheemsFeed", "Errore API: ${response.code()}")
-                    Toast.makeText(this@MainActivity, "Errore: ${response.code()}", Toast.LENGTH_SHORT).show()
+                    Log.e("CheemsFeed", "API Error: ${response.code()}")
+                    Toast.makeText(this@MainActivity, "Error: ${response.code()}", Toast.LENGTH_SHORT).show()
                 }
             }
 
             override fun onFailure(call: Call<RedditResponse>, t: Throwable) {
-                Log.e("CheemsFeed", "Connessione fallita", t)
+                Log.e("CheemsFeed", "Connection Failed", t)
                 Toast.makeText(this@MainActivity, "Errore di rete: ${t.message}", Toast.LENGTH_LONG).show()
             }
         })
