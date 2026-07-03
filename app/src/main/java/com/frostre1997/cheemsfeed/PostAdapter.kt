@@ -6,11 +6,8 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class PostAdapter(private val posts: List<RedditPost>) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
-
-    class PostViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val textView: TextView = view.findViewById(android.R.id.text1)
-    }
+class PostAdapter(private val posts: List<PostData>) :
+    RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -19,10 +16,16 @@ class PostAdapter(private val posts: List<RedditPost>) : RecyclerView.Adapter<Po
     }
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
-        val post = posts[position]
-        
-        holder.textView.text = post.title
+        holder.bind(posts[position])
     }
 
     override fun getItemCount() = posts.size
-}
+
+    class PostViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val titleView = itemView.findViewById<TextView>(android.R.id.text1)
+
+        fun bind(post: PostData) {
+            titleView.text = post.title
+        }
+    }
+    }
