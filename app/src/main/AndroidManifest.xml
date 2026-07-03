@@ -6,8 +6,8 @@
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
-        android:label="CheemsFeed"
-        android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+        android:label="@string/app_name"
+        android:theme="@style/Theme.CheemsFeed">
         
         <activity android:name=".MainActivity"
             android:exported="true">
@@ -16,5 +16,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".SettingsActivity"
+            android:exported="false" />
+
     </application>
+
 </manifest>
