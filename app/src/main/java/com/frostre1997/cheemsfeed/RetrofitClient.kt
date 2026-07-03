@@ -6,7 +6,7 @@ import retrofit2.http.GET
 
 interface RedditApi {
     @GET("r/cheemsburbger/hot.json")  // change subreddit if needed
-    suspend fun getHotPosts(): RedditResponse
+    suspend fun getHotPosts(): Call<RedditResponse>
     // or use Call<RedditResponse> if you prefer; but suspend is cleaner
 }
 
