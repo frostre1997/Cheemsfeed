@@ -7,23 +7,20 @@ android {
     namespace 'com.frostre1997.cheemsfeed'
     compileSdk 34
 
-        defaultConfig {
+    defaultConfig {
         applicationId "com.frostre1997.cheemsfeed"
         minSdk 21
         targetSdk 34
         
         versionCode (new Date().format('yyDDD').toInteger())
-        
         versionName "1.0.${new Date().format('HHmm')}"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        }
-    
     }
 
     signingConfigs {
         debug {
-        
+            
         }
     }
 
