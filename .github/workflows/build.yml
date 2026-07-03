@@ -1,4 +1,4 @@
-name: Android APK Build
+name: CheemsFeed APK Build
 
 on:
   push:
@@ -23,4 +23,14 @@ jobs:
 
       - name: Build with Gradle
         run: ./gradlew assembleDebug
+
+      - name: Trova APK (Debug)
+        run: find . -name "*.apk"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CheemsFeed
+          path: app/build/outputs/apk/release/*.apk
+          
         
