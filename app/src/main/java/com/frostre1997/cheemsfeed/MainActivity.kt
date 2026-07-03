@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun fetchPosts() {
-        val call = RetrofitClient.instance.getHotPosts()
+        val call = RetrofitClient.instance.getHotPosts("Doge")
 
         call.enqueue(object : Callback<RedditResponse> {
             override fun onResponse(call: Call<RedditResponse>, response: Response<RedditResponse>) {
