@@ -24,11 +24,13 @@ class MainActivity : AppCompatActivity() {
         call.enqueue(object : Callback<RedditResponse> {
             override fun onResponse(call: Call<RedditResponse>, response: Response<RedditResponse>) {
                 if (response.isSuccessful) {
-                    val posts = response.body()?.data?.children 
+                    val rawChildren = response.body()?.data?.children ?: emptyList()
+                    
+                    val posts = rawChildren.map { it.data }
                     
                     val recyclerView = findViewById<RecyclerView>(R.id.recyclerView)
                     recyclerView.layoutManager = LinearLayoutManager(this@MainActivity)
-                    recyclerView.adapter = PostAdapter(posts ?: emptyList())
+                    recyclerView.adapter = PostAdapter(posts)
                 } else {
                     Log.d("CheemsFeed", "Error: ${response.code()}")
                 }
