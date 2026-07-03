@@ -24,14 +24,13 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build debug APK
+      - name: Build APK
         run: ./gradlew assembleDebug
-
-      - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/CheemsFeed.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: CheemsFeed
-          path: app/build/outputs/apk/debug/CheemsFeed.apk
+          # Puntiamo direttamente alla cartella debug
+          path: app/build/outputs/apk/debug/*.apk
+          
