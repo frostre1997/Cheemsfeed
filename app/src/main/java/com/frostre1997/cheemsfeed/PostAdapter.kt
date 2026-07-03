@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.button.MaterialButton
 import android.widget.TextView
-from com.frostre1997.cheemsfeed.databinding.ItemPostBinding
+import com.frostre1997.cheemsfeed.databinding.ItemPostBinding
 import java.text.SimpleDateFormat
 import java.util.*
 
