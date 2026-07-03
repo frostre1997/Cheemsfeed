@@ -27,12 +27,12 @@ jobs:
       - name: Build APK
         run: ./gradlew assembleRelease
 
-      - name: Rinomina APK
+      - name: Rename APK
         run: cp app/build/outputs/apk/release/*.apk app/build/outputs/apk/release/CheemsFeed.apk
       
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: CheemsFeed_v1.0.0
-          path: app/build/outputs/apk/release/CheemsFeed_v1.0.0.apk
+          name: CheemsFeed
+          path: app/build/outputs/**/*.apk
           
