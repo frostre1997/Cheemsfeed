@@ -5,6 +5,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -28,12 +29,10 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val authManager = RedditAuthManager(this, RedditApiClient.wwwService)
-        viewModel = FeedViewModel(
-            RedditApiClient.oauthService,
-            RedditApiClient.publicService,
-            authManager
-        )
+        viewModel = ViewModelProvider(
+            this,
+            FeedViewModel.Factory(RedditApiClient.oauthService, RedditApiClient.publicService)
+        )[FeedViewModel::class.java]
 
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
@@ -62,6 +61,11 @@ class MainActivity : AppCompatActivity() {
                     Toast.makeText(this@MainActivity, state.error, Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+
+        lifecycleScope.launch {
+            val authManager = RedditAuthManager.create(this@MainActivity, RedditApiClient.wwwService)
+            viewModel.setAuthManager(authManager)
         }
     }
 
@@ -97,6 +101,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        viewModel.fetchPosts()
+        if (viewModel.uiState.value.posts.isEmpty()) {
+            viewModel.fetchPosts()
+        }
     }
 }

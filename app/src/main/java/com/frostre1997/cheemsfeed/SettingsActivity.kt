@@ -6,8 +6,12 @@ import android.widget.ArrayAdapter
 import android.widget.Spinner
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.lifecycle.lifecycleScope
+import com.frostre1997.cheemsfeed.auth.RedditAuthManager
+import com.frostre1997.cheemsfeed.network.RedditApiClient
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.switchmaterial.SwitchMaterial
+import kotlinx.coroutines.launch
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -58,11 +62,11 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         findViewById<MaterialButton>(R.id.logoutButton).setOnClickListener {
-            com.frostre1997.cheemsfeed.auth.RedditAuthManager(
-                this,
-                com.frostre1997.cheemsfeed.network.RedditApiClient.wwwService
-            ).logout()
-            finish()
+            lifecycleScope.launch {
+                val mgr = RedditAuthManager.create(this@SettingsActivity, RedditApiClient.wwwService)
+                mgr.logout()
+                finish()
+            }
         }
     }
 }

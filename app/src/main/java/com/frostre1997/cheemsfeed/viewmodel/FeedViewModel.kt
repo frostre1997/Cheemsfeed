@@ -1,6 +1,7 @@
 package com.frostre1997.cheemsfeed.viewmodel
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.frostre1997.cheemsfeed.auth.RedditAuthManager
 import com.frostre1997.cheemsfeed.model.PostData
@@ -20,9 +21,18 @@ data class FeedUiState(
 
 class FeedViewModel(
     private val oauthApi: RedditApi,
-    private val publicApi: RedditApi,
-    private val authManager: RedditAuthManager
+    private val publicApi: RedditApi
 ) : ViewModel() {
+
+    class Factory(
+        private val oauthApi: RedditApi,
+        private val publicApi: RedditApi
+    ) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return FeedViewModel(oauthApi, publicApi) as T
+        }
+    }
 
     private val _uiState = MutableStateFlow(FeedUiState())
     val uiState: StateFlow<FeedUiState> = _uiState
@@ -30,8 +40,10 @@ class FeedViewModel(
     private var sortMode = SortMode.HOT
     private var currentSubreddit = "all"
     private var after: String? = null
+    private var authManager: RedditAuthManager? = null
 
-    init {
+    fun setAuthManager(manager: RedditAuthManager) {
+        authManager = manager
         fetchPosts()
     }
 
@@ -51,8 +63,8 @@ class FeedViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val response = if (authManager.isLoggedIn()) {
-                    val token = authManager.getValidAccessToken()
+                val response = if (authManager?.isLoggedIn() == true) {
+                    val token = authManager?.getValidAccessToken()
                     if (token != null) {
                         fetchAuthenticated(token)
                     } else {
@@ -66,7 +78,7 @@ class FeedViewModel(
                 _uiState.value = _uiState.value.copy(
                     posts = posts,
                     isLoading = false,
-                    isLoggedIn = authManager.isLoggedIn()
+                    isLoggedIn = authManager?.isLoggedIn() == true
                 )
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
@@ -78,7 +90,7 @@ class FeedViewModel(
     }
 
     fun logout() {
-        authManager.logout()
+        authManager?.logout()
         _uiState.value = _uiState.value.copy(isLoggedIn = false)
         fetchPosts()
     }

@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
 
-    private lateinit var authManager: RedditAuthManager
+    private var authManager: RedditAuthManager? = null
     private lateinit var loginButton: Button
     private lateinit var progressBar: ProgressBar
 
@@ -23,22 +23,27 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        authManager = RedditAuthManager(this, RedditApiClient.wwwService)
-
         loginButton = findViewById(R.id.btn_login)
         progressBar = findViewById(R.id.progress_bar)
 
-        if (authManager.isLoggedIn()) {
-            navigateToMain()
-            return
-        }
+        loginButton.isEnabled = false
 
-        loginButton.setOnClickListener {
-            val authUrl = authManager.getAuthorizationUrl()
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(authUrl)))
-        }
+        lifecycleScope.launch {
+            authManager = RedditAuthManager.create(this@LoginActivity, RedditApiClient.wwwService)
+            loginButton.isEnabled = true
 
-        handleAuthCallback(intent)
+            if (authManager?.isLoggedIn() == true) {
+                navigateToMain()
+                return@launch
+            }
+
+            loginButton.setOnClickListener {
+                val url = authManager?.getAuthorizationUrl() ?: return@setOnClickListener
+                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+            }
+
+            handleAuthCallback(intent)
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -58,8 +63,8 @@ class LoginActivity : AppCompatActivity() {
             error != null -> {
                 Toast.makeText(this, "Auth failed: $error", Toast.LENGTH_SHORT).show()
             }
-            code != null && state == authManager.getSavedState() -> {
-                authManager.clearState()
+            code != null && state == authManager?.getSavedState() -> {
+                authManager?.clearState()
                 exchangeCodeForToken(code)
             }
             code != null -> {
@@ -73,7 +78,7 @@ class LoginActivity : AppCompatActivity() {
         loginButton.isEnabled = false
 
         lifecycleScope.launch {
-            val success = authManager.exchangeCodeForToken(code)
+            val success = authManager?.exchangeCodeForToken(code) == true
             progressBar.visibility = android.view.View.GONE
             loginButton.isEnabled = true
 
