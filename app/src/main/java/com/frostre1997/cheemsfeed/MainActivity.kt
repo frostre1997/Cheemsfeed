@@ -42,7 +42,8 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
 
         adapter = PostAdapter { post ->
-            post.url?.let { url ->
+            val link = post.permalink?.let { "https://www.reddit.com$it" } ?: post.url
+            link?.let { url ->
                 startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)))
             }
         }

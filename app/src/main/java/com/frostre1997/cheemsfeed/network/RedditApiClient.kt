@@ -51,11 +51,7 @@ object RedditApiClient {
     val publicService: RedditApi by lazy {
         Retrofit.Builder()
             .baseUrl(REDDIT_WWW_BASE)
-            .client(OkHttpClient.Builder()
-                .addInterceptor(userAgentInterceptor)
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .build())
+            .client(createClient())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(RedditApi::class.java)

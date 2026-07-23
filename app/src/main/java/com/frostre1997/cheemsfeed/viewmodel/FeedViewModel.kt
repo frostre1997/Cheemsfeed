@@ -101,14 +101,14 @@ class FeedViewModel(
     }
 
     private suspend fun fetchAuthenticated(token: String) = when (sortMode) {
-        SortMode.HOT -> oauthApi.getHotPosts(currentSubreddit, token = "Bearer $token")
-        SortMode.NEW -> oauthApi.getNewPosts(currentSubreddit, token = "Bearer $token")
-        SortMode.TOP -> oauthApi.getTopPosts(currentSubreddit, token = "Bearer $token")
+        SortMode.HOT -> oauthApi.getHotPosts(currentSubreddit, after = after, token = "Bearer $token")
+        SortMode.NEW -> oauthApi.getNewPosts(currentSubreddit, after = after, token = "Bearer $token")
+        SortMode.TOP -> oauthApi.getTopPosts(currentSubreddit, after = after, token = "Bearer $token")
     }
 
     private suspend fun fetchPublic() = when (sortMode) {
-        SortMode.HOT -> publicApi.getHotPosts(currentSubreddit, token = "")
-        SortMode.NEW -> publicApi.getNewPosts(currentSubreddit, token = "")
-        SortMode.TOP -> publicApi.getTopPosts(currentSubreddit, token = "")
+        SortMode.HOT -> publicApi.getHotPosts(currentSubreddit, after = after, token = "")
+        SortMode.NEW -> publicApi.getNewPosts(currentSubreddit, after = after, token = "")
+        SortMode.TOP -> publicApi.getTopPosts(currentSubreddit, after = after, token = "")
     }
 }

@@ -3,15 +3,18 @@ package com.frostre1997.cheemsfeed.network
 import com.frostre1997.cheemsfeed.model.RedditResponse
 import com.frostre1997.cheemsfeed.model.TokenResponse
 import com.frostre1997.cheemsfeed.model.UserResponse
-import com.google.gson.JsonObject
 import retrofit2.http.*
 
 interface RedditApi {
 
+    @FormUrlEncoded
     @POST("api/v1/access_token")
     suspend fun getAccessToken(
         @Header("Authorization") auth: String,
-        @Body body: JsonObject
+        @Field("grant_type") grantType: String,
+        @Field("code") code: String? = null,
+        @Field("redirect_uri") redirectUri: String? = null,
+        @Field("refresh_token") refreshToken: String? = null
     ): TokenResponse
 
     @GET("api/v1/me")

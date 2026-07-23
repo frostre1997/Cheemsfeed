@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Base64
 import com.frostre1997.cheemsfeed.network.RedditApi
-import com.google.gson.JsonObject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -53,12 +52,12 @@ class RedditAuthManager(
             val authHeader = "Basic " + Base64.encodeToString(
                 credentials.toByteArray(), Base64.NO_WRAP
             )
-            val body = JsonObject().apply {
-                addProperty("grant_type", "authorization_code")
-                addProperty("code", code)
-                addProperty("redirect_uri", REDIRECT_URI)
-            }
-            val response = wwwApi.getAccessToken(authHeader, body)
+            val response = wwwApi.getAccessToken(
+                authHeader,
+                grantType = "authorization_code",
+                code = code,
+                redirectUri = REDIRECT_URI
+            )
             storeTokens(response)
             true
         } catch (e: Exception) {
@@ -74,11 +73,11 @@ class RedditAuthManager(
             val authHeader = "Basic " + Base64.encodeToString(
                 credentials.toByteArray(), Base64.NO_WRAP
             )
-            val body = JsonObject().apply {
-                addProperty("grant_type", "refresh_token")
-                addProperty("refresh_token", refreshToken)
-            }
-            val response = wwwApi.getAccessToken(authHeader, body)
+            val response = wwwApi.getAccessToken(
+                authHeader,
+                grantType = "refresh_token",
+                refreshToken = refreshToken
+            )
             storeTokens(response)
             true
         } catch (e: Exception) {
