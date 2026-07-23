@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.CheemsFeed" parent="Theme.Material3.Light">
+        <!-- DISABLE DEFAULT ACTION BAR -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+
         <!-- Primary brand color -->
         <item name="colorPrimary">@color/md_theme_light_primary</item>
         <item name="colorOnPrimary">@color/md_theme_light_on_primary</item>
