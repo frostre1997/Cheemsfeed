@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.CheemsFeed" parent="Theme.Material3.Dark">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        
         <!-- Primary brand color -->
         <item name="colorPrimary">@color/md_theme_dark_primary</item>
         <item name="colorOnPrimary">@color/md_theme_dark_on_primary</item>
