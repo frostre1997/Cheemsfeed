@@ -1,114 +1,111 @@
 package com.frostre1997.cheemsfeed.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.frostre1997.cheemsfeed.auth.RedditAuthManager
-import com.frostre1997.cheemsfeed.model.PostData
-import com.frostre1997.cheemsfeed.network.RedditApi
+import com.frostre1997.cheemsfeed.network.PublicPost
+import com.frostre1997.cheemsfeed.network.RedditApiClient
+import com.frostre1997.cheemsfeed.network.PublicFeedResponse
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-enum class SortMode { HOT, NEW, TOP }
-
 data class FeedUiState(
-    val posts: List<PostData> = emptyList(),
     val isLoading: Boolean = false,
+    val posts: List<PublicPost> = emptyList(),
     val error: String? = null,
-    val isLoggedIn: Boolean = false
+    val after: String? = null,
+    val hasMore: Boolean = true
 )
 
-class FeedViewModel(
-    private val oauthApi: RedditApi,
-    private val publicApi: RedditApi,
-    private val authManager: RedditAuthManager
-) : ViewModel() {
+enum class SortMode {
+    HOT, NEW, TOP, RISING
+}
 
-    class Factory(
-        private val oauthApi: RedditApi,
-        private val publicApi: RedditApi,
-        private val authManager: RedditAuthManager
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return FeedViewModel(oauthApi, publicApi, authManager) as T
-        }
-    }
+class FeedViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(FeedUiState())
-    val uiState: StateFlow<FeedUiState> = _uiState
+    val uiState: StateFlow<FeedUiState> = _uiState.asStateFlow()
 
-    private var sortMode = SortMode.HOT
     private var currentSubreddit = "all"
-    private var after: String? = null
+    private var currentSort = SortMode.HOT
 
-    init {
-        _uiState.value = _uiState.value.copy(isLoggedIn = authManager.isLoggedIn())
-        fetchPosts()
-    }
-
-    fun setSortMode(mode: SortMode) {
-        sortMode = mode
-        after = null
-        fetchPosts()
-    }
-
-    fun setSubreddit(subreddit: String) {
+    fun loadFeed(
+        subreddit: String = currentSubreddit,
+        sort: SortMode = currentSort,
+        loadMore: Boolean = false
+    ) {
         currentSubreddit = subreddit
-        after = null
-        fetchPosts()
-    }
+        currentSort = sort
 
-    fun refreshLoginState() {
-        _uiState.value = _uiState.value.copy(isLoggedIn = authManager.isLoggedIn())
-    }
+        if (!loadMore) {
+            _uiState.value = FeedUiState(isLoading = true)
+        } else {
+            _uiState.value = _uiState.value.copy(isLoading = true)
+        }
 
-    fun fetchPosts() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             try {
-                val response = if (authManager.isLoggedIn()) {
-                    val token = authManager.getValidAccessToken()
-                    if (token != null) {
-                        fetchAuthenticated(token)
+                val after = if (loadMore) _uiState.value.after else null
+                val response = when (sort) {
+                    SortMode.HOT -> RedditApiClient.publicService.getHotPosts(subreddit, 25, after)
+                    SortMode.NEW -> RedditApiClient.publicService.getNewPosts(subreddit, 25, after)
+                    SortMode.TOP -> RedditApiClient.publicService.getTopPosts(subreddit, 25, "day", after)
+                    SortMode.RISING -> RedditApiClient.publicService.getRisingPosts(subreddit, 25, after)
+                }
+
+                if (response.isSuccessful) {
+                    val data = response.body()
+                    if (data != null) {
+                        val posts = data.data.children.map { it.data }
+                        val newPosts = if (loadMore) {
+                            _uiState.value.posts + posts
+                        } else {
+                            posts
+                        }
+                        _uiState.value = FeedUiState(
+                            isLoading = false,
+                            posts = newPosts,
+                            error = null,
+                            after = data.data.after,
+                            hasMore = data.data.after != null
+                        )
                     } else {
-                        fetchPublic()
+                        _uiState.value = FeedUiState(
+                            isLoading = false,
+                            posts = if (loadMore) _uiState.value.posts else emptyList(),
+                            error = "No data received"
+                        )
                     }
                 } else {
-                    fetchPublic()
+                    _uiState.value = FeedUiState(
+                        isLoading = false,
+                        posts = if (loadMore) _uiState.value.posts else emptyList(),
+                        error = "Error: ${response.code()} - ${response.message()}"
+                    )
                 }
-                val posts = response.data.children.map { it.data }
-                after = response.data.after
-                _uiState.value = _uiState.value.copy(
-                    posts = posts,
-                    isLoading = false,
-                    isLoggedIn = authManager.isLoggedIn()
-                )
             } catch (e: Exception) {
-                _uiState.value = _uiState.value.copy(
+                _uiState.value = FeedUiState(
                     isLoading = false,
-                    error = e.message ?: "Failed to load posts"
+                    posts = if (loadMore) _uiState.value.posts else emptyList(),
+                    error = "Network error: ${e.message}"
                 )
             }
         }
     }
 
-    fun logout() {
-        authManager.logout()
-        _uiState.value = _uiState.value.copy(isLoggedIn = false)
-        fetchPosts()
+    fun setSortMode(sort: SortMode) {
+        currentSort = sort
+        loadFeed(currentSubreddit, sort)
     }
 
-    private suspend fun fetchAuthenticated(token: String) = when (sortMode) {
-        SortMode.HOT -> oauthApi.getHotPosts(currentSubreddit, after = after, token = "Bearer $token")
-        SortMode.NEW -> oauthApi.getNewPosts(currentSubreddit, after = after, token = "Bearer $token")
-        SortMode.TOP -> oauthApi.getTopPosts(currentSubreddit, after = after, token = "Bearer $token")
+    fun loadMore() {
+        if (_uiState.value.hasMore && !_uiState.value.isLoading) {
+            loadFeed(currentSubreddit, currentSort, loadMore = true)
+        }
     }
 
-    private suspend fun fetchPublic() = when (sortMode) {
-        SortMode.HOT -> publicApi.getHotPosts(currentSubreddit, after = after, token = "")
-        SortMode.NEW -> publicApi.getNewPosts(currentSubreddit, after = after, token = "")
-        SortMode.TOP -> publicApi.getTopPosts(currentSubreddit, after = after, token = "")
+    fun refresh() {
+        loadFeed(currentSubreddit, currentSort)
     }
 }
