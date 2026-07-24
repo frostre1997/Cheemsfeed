@@ -9,7 +9,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.frostre1997.cheemsfeed.auth.LoginActivity
 import com.frostre1997.cheemsfeed.auth.RedditAuthManager
 import com.frostre1997.cheemsfeed.network.RedditApiClient
 import com.frostre1997.cheemsfeed.viewmodel.FeedViewModel
@@ -31,11 +30,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val authManager = RedditAuthManager(this, RedditApiClient.publicService)
-        
-        // ===== FIXED: Use the correct factory name =====
         viewModel = ViewModelProvider(
             this,
-            FeedViewModelFactory(RedditApiClient.publicService, authManager)  
+            FeedViewModelFactory(RedditApiClient.publicService, authManager)
         )[FeedViewModel::class.java]
 
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
@@ -57,7 +54,6 @@ class MainActivity : AppCompatActivity() {
             showSortDialog()
         }
 
-        // ===== FIXED: Use SortMode directly =====
         viewModel.loadFeed("all", SortMode.HOT)
 
         lifecycleScope.launch {
@@ -83,7 +79,10 @@ class MainActivity : AppCompatActivity() {
                 true
             }
             R.id.action_login -> {
-                startActivity(android.content.Intent(this, LoginActivity::class.java))
+                // Temporarily show a toast instead of opening LoginActivity
+                Toast.makeText(this, "Login disabled – using public API", Toast.LENGTH_SHORT).show()
+                // If you have a LoginActivity, uncomment:
+                // startActivity(Intent(this, LoginActivity::class.java))
                 true
             }
             else -> super.onOptionsItemSelected(item)
