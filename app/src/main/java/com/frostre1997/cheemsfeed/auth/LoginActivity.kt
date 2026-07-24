@@ -23,7 +23,7 @@ class LoginActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        authManager = RedditAuthManager(this, RedditApiClient.wwwService)
+        authManager = RedditAuthManager(this, RedditApiClient.publicService)
 
         loginButton = findViewById(R.id.btn_login)
         progressBar = findViewById(R.id.progress_bar)
