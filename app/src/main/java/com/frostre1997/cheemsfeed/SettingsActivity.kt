@@ -60,7 +60,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         findViewById<MaterialButton>(R.id.logoutButton).setOnClickListener {
-            RedditAuthManager(this, RedditApiClient.wwwService).logout()
+            RedditAuthManager(this, RedditApiClient.publicService).logout()
             finish()
         }
     }
