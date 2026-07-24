@@ -1,92 +1,25 @@
 package com.frostre1997.cheemsfeed.auth
 
-import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.widget.Button
-import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import com.frostre1997.cheemsfeed.MainActivity
 import com.frostre1997.cheemsfeed.R
 import com.frostre1997.cheemsfeed.network.RedditApiClient
-import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
-
-    private lateinit var authManager: RedditAuthManager
-    private lateinit var loginButton: Button
-    private lateinit var progressBar: ProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        authManager = RedditAuthManager(this, RedditApiClient.publicService)
+        // Since we don't have OAuth credentials yet, show a message
+        Toast.makeText(this, "OAuth login is disabled. Using public feed.", Toast.LENGTH_LONG).show()
 
-        loginButton = findViewById(R.id.btn_login)
-        progressBar = findViewById(R.id.progress_bar)
-
-        if (authManager.isLoggedIn()) {
-            navigateToMain()
-            return
+        // You can keep the login UI but disable the button, or just finish
+        // For now, close this activity after showing the message
+        findViewById<android.widget.Button>(R.id.login_button)?.setOnClickListener {
+            Toast.makeText(this, "Login not available - using public API", Toast.LENGTH_SHORT).show()
+            // Optionally finish()
         }
-
-        loginButton.setOnClickListener {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(authManager.getAuthorizationUrl())))
-        }
-
-        handleAuthCallback(intent)
-    }
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        handleAuthCallback(intent)
-    }
-
-    private fun handleAuthCallback(intent: Intent?) {
-        val uri = intent?.data ?: return
-        if (uri.scheme != "cheemsfeed") return
-
-        val code = uri.getQueryParameter("code")
-        val state = uri.getQueryParameter("state")
-        val error = uri.getQueryParameter("error")
-
-        when {
-            error != null -> {
-                Toast.makeText(this, "Auth failed: $error", Toast.LENGTH_SHORT).show()
-            }
-            code != null && state == authManager.getSavedState() -> {
-                authManager.clearState()
-                exchangeCodeForToken(code)
-            }
-            code != null -> {
-                Toast.makeText(this, "State mismatch", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun exchangeCodeForToken(code: String) {
-        progressBar.visibility = android.view.View.VISIBLE
-        loginButton.isEnabled = false
-
-        lifecycleScope.launch {
-            val success = authManager.exchangeCodeForToken(code)
-            progressBar.visibility = android.view.View.GONE
-            loginButton.isEnabled = true
-
-            if (success) {
-                Toast.makeText(this@LoginActivity, "Logged in!", Toast.LENGTH_SHORT).show()
-                navigateToMain()
-            } else {
-                Toast.makeText(this@LoginActivity, "Login failed", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
-
-    private fun navigateToMain() {
-        startActivity(Intent(this, MainActivity::class.java))
-        finish()
     }
 }
