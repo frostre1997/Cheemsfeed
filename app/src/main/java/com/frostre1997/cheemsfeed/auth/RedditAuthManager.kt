@@ -2,113 +2,41 @@ package com.frostre1997.cheemsfeed.auth
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.util.Base64
 import com.frostre1997.cheemsfeed.network.RedditApi
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.util.UUID
+import com.frostre1997.cheemsfeed.network.RedditApiClient
 
 class RedditAuthManager(
-    context: Context,
-    private val wwwApi: RedditApi
+    private val context: Context,
+    private val apiService: RedditApi
 ) {
-    companion object {
-        private const val REDDIT_CLIENT_ID = "YOUR_REDDIT_CLIENT_ID"
-        private const val REDDIT_CLIENT_SECRET = "YOUR_REDDIT_CLIENT_SECRET"
-        private const val REDIRECT_URI = "cheemsfeed://auth"
-        private const val AUTH_BASE = "https://www.reddit.com/api/v1/authorize"
+    private val prefs: SharedPreferences = 
+        context.getSharedPreferences("reddit_auth", Context.MODE_PRIVATE)
 
-        private const val PREFS_NAME = "reddit_auth"
-        private const val KEY_ACCESS_TOKEN = "access_token"
-        private const val KEY_REFRESH_TOKEN = "refresh_token"
-        private const val KEY_TOKEN_EXPIRY = "token_expiry"
-        private const val KEY_USERNAME = "username"
-    }
-
-    private val prefs: SharedPreferences =
-        context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-
-    fun getAuthorizationUrl(): String {
-        val state = UUID.randomUUID().toString()
-        prefs.edit().putString("oauth_state", state).apply()
-        return "$AUTH_BASE?" +
-                "client_id=$REDDIT_CLIENT_ID&" +
-                "response_type=code&" +
-                "state=$state&" +
-                "redirect_uri=$REDIRECT_URI&" +
-                "duration=permanent&" +
-                "scope=identity,read,mysubreddits"
-    }
-
-    fun getSavedState(): String? = prefs.getString("oauth_state", null)
-
-    fun clearState() {
-        prefs.edit().remove("oauth_state").apply()
-    }
-
-    suspend fun exchangeCodeForToken(code: String): Boolean = withContext(Dispatchers.IO) {
-        try {
-            val credentials = "$REDDIT_CLIENT_ID:$REDDIT_CLIENT_SECRET"
-            val authHeader = "Basic " + Base64.encodeToString(
-                credentials.toByteArray(), Base64.NO_WRAP
-            )
-            val response = wwwApi.getAccessToken(
-                authHeader,
-                grantType = "authorization_code",
-                code = code,
-                redirectUri = REDIRECT_URI
-            )
-            storeTokens(response)
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
-    }
-
-    suspend fun refreshAccessToken(): Boolean = withContext(Dispatchers.IO) {
-        val refreshToken = prefs.getString(KEY_REFRESH_TOKEN, null) ?: return@withContext false
-        try {
-            val credentials = "$REDDIT_CLIENT_ID:$REDDIT_CLIENT_SECRET"
-            val authHeader = "Basic " + Base64.encodeToString(
-                credentials.toByteArray(), Base64.NO_WRAP
-            )
-            val response = wwwApi.getAccessToken(
-                authHeader,
-                grantType = "refresh_token",
-                refreshToken = refreshToken
-            )
-            storeTokens(response)
-            true
-        } catch (e: Exception) {
-            e.printStackTrace()
-            false
-        }
-    }
-
-    suspend fun getValidAccessToken(): String? = withContext(Dispatchers.IO) {
-        val expiry = prefs.getLong(KEY_TOKEN_EXPIRY, 0)
-        if (System.currentTimeMillis() + 60000 > expiry) {
-            val success = refreshAccessToken()
-            if (!success && getAccessToken() == null) return@withContext null
-        }
-        getAccessToken()
-    }
-
-    fun isLoggedIn(): Boolean = getAccessToken() != null
-
-    fun logout() {
-        prefs.edit().clear().apply()
-    }
-
-    private fun storeTokens(response: com.frostre1997.cheemsfeed.model.TokenResponse) {
+    // Save OAuth tokens (for later when you get approval)
+    fun saveTokens(accessToken: String, refreshToken: String?) {
         prefs.edit().apply {
-            putString(KEY_ACCESS_TOKEN, response.access_token)
-            putLong(KEY_TOKEN_EXPIRY, System.currentTimeMillis() + response.expires_in * 1000)
-            response.refresh_token?.let { putString(KEY_REFRESH_TOKEN, it) }
+            putString("access_token", accessToken)
+            putString("refresh_token", refreshToken)
+            putBoolean("is_logged_in", true)
             apply()
         }
     }
 
-    private fun getAccessToken(): String? = prefs.getString(KEY_ACCESS_TOKEN, null)
+    // Get stored access token (returns null if not logged in)
+    fun getAccessToken(): String? = prefs.getString("access_token", null)
+
+    // Check if user is logged in (via OAuth)
+    fun isLoggedIn(): Boolean = prefs.getBoolean("is_logged_in", false)
+
+    // Clear all auth data (logout)
+    fun logout() {
+        prefs.edit().clear().apply()
+        // Also clear cookies from the cookie jar
+        RedditApiClient.clearCookies() // we'll add this method
+    }
+
+    // Refresh login state (called on resume) – just check prefs
+    fun refreshLoginState() {
+        // Nothing needed for public API; but if you had OAuth, you'd refresh token here
+    }
 }
