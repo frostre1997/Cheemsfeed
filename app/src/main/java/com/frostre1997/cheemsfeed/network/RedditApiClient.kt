@@ -1,6 +1,5 @@
 package com.frostre1997.cheemsfeed.network
 
-import com.frostre1997.cheemsfeed.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -42,9 +41,9 @@ object RedditApiClient {
         response
     }
 
-    // Logging (debug only)
+    // Logging – always log for debugging (no BuildConfig dependency)
     private val loggingInterceptor = HttpLoggingInterceptor().apply {
-        level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY else HttpLoggingInterceptor.Level.NONE
+        level = HttpLoggingInterceptor.Level.BODY
     }
 
     private fun createClient(): OkHttpClient {
