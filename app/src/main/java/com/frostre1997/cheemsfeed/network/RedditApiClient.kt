@@ -8,6 +8,11 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 object RedditApiClient {
+    private val cookieJar = RedditCookieJar()
+    // ... then in createClient():
+    private fun createClient(): OkHttpClient {
+        return OkHttpClient.Builder()
+            .cookieJar(cookieJar)  // use the same instance
 
     private const val REDDIT_WWW_BASE = "https://www.reddit.com/"
     private const val REDDIT_OAUTH_BASE = "https://oauth.reddit.com/"
@@ -96,5 +101,8 @@ object RedditApiClient {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(RedditApi::class.java)
+
+    fun clearCookies() {
+        cookieJar.clearCookies()
     }
 }
