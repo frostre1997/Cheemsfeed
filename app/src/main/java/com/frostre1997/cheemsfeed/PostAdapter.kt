@@ -2,63 +2,42 @@ package com.frostre1997.cheemsfeed
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.frostre1997.cheemsfeed.databinding.ItemPostBinding
-import com.frostre1997.cheemsfeed.model.PostData
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.frostre1997.cheemsfeed.network.PublicPost
 
 class PostAdapter(
-    private val onPostClick: (PostData) -> Unit
-) : ListAdapter<PostData, PostAdapter.PostViewHolder>(DiffCallback) {
+    private val onItemClick: (PublicPost) -> Unit
+) : RecyclerView.Adapter<PostAdapter.PostViewHolder>() {
+
+    private var posts: List<PublicPost> = emptyList()
+
+    fun submitList(newPosts: List<PublicPost>) {
+        posts = newPosts
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
-        val binding = ItemPostBinding.inflate(
-            LayoutInflater.from(parent.context), parent, false
-        )
-        return PostViewHolder(binding, onPostClick)
+        val binding = ItemPostBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return PostViewHolder(binding)
     }
 
     override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        val post = posts[position]
+        holder.bind(post)
+        holder.itemView.setOnClickListener { onItemClick(post) }
     }
 
-    class PostViewHolder(
-        private val binding: ItemPostBinding,
-        private val onPostClick: (PostData) -> Unit
-    ) : RecyclerView.ViewHolder(binding.root) {
+    override fun getItemCount(): Int = posts.size
 
-        fun bind(post: PostData) {
-            binding.postTitle.text = post.title
-            binding.postAuthor.text = "r/${post.subreddit ?: "unknown"} • u/${post.author ?: "[deleted]"}"
-            binding.postDate.text = formatTime(post.created_utc ?: 0L)
-            binding.scoreText.text = "▲ ${post.score ?: 0}"
-            binding.commentsText.text = "💬 ${post.num_comments ?: 0}"
-            binding.root.setOnClickListener { onPostClick(post) }
+    class PostViewHolder(private val binding: ItemPostBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+        fun bind(post: PublicPost) {
+            binding.titleTextView.text = post.title
+            binding.subredditTextView.text = post.subreddit
+            binding.scoreTextView.text = post.score.toString()
+            binding.commentsTextView.text = "${post.numComments} comments"
+            // You can also load thumbnail if available
         }
-
-        private fun formatTime(timestamp: Long): String {
-            if (timestamp == 0L) return ""
-            val diff = (System.currentTimeMillis() / 1000) - timestamp
-            return when {
-                diff < 60 -> "now"
-                diff < 3600 -> "${diff / 60}m"
-                diff < 86400 -> "${diff / 3600}h"
-                diff < 604800 -> "${diff / 86400}d"
-                else -> SimpleDateFormat("MMM dd", Locale.getDefault())
-                    .format(Date(timestamp * 1000))
-            }
-        }
-    }
-
-    object DiffCallback : DiffUtil.ItemCallback<PostData>() {
-        override fun areItemsTheSame(old: PostData, new: PostData) =
-            old.id == new.id
-
-        override fun areContentsTheSame(old: PostData, new: PostData) =
-            old == new
     }
 }
